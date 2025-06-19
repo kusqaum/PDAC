@@ -1,47 +1,68 @@
+library(mice)
+
+
 
 espac3_L <- read.csv("Data/espac3.csv", row.names = 1)
-espaccl<- read.csv("Data/espac3_clean.csv")
+dat <- read.csv("Data/espac3_clean.csv")
 
-espac3_L <- espac3_L[espac3_L$Arm == "GEM",]
-espac3_L <- espac3_L[espac3_L$TumourType == "Ductal",]
-
-espac3 <- espac3_L[, -c(2,3,5,6,7,8,9,10,11,13,14,15,21,22,25,26,28,
-                        29,30,31,35,37,38,39,42,43,45,46,47,48,49,50,
-                        51,53,54,55,56)]
+espac3 <- espac3_L[espac3_L$Arm == "GEM",]
+espac3_gem <- espac3_L[espac3_L$Arm == "GEM",]
 
 # calc surv time
-espac3$stime <- as.numeric(difftime(as.Date(espac3$OS_dt_2), as.Date(espac3$Day1trt), units = "days")/30.44)
+espac3$stime <- as.numeric(difftime(as.Date(espac3$OS_dt_2), as.Date(espac3$Surg_dt), units = "days")/30.44)
 
 range(espac3$stime, na.rm = T)
 
-espac3<- espac3[-which(is.na(espac3$stime)),]
+espac3 <- espac3[,which(colnames(espac3) %in% c("LymphN","Stage","Diff_Status","PostOpCA199", 
+                                                  "stime", "OS_cen"))]
 
-espac3 <- espac3[,!colnames(espac3) %in% c("EOT_Dt","FUdt", "TRTdt", "CEN2", "Day1trt", "OS_dt",
-                                           "Death_dt", "Censor_dt", "OS_dt_2", "Prog_dt",
-                                           "PFS_dt", "PFS_dt_2", "Prog_cen","PFS_cen", "Arm")]
+# retain patients with baseline measure of ca199
+espac3 <- espac3[-which(is.na(espac3$PostOpCA199)),]
 
-summary(espac3)
-espac3$Sex <- as.factor(espac3$Sex)
-espac3$LymphN <- as.factor(espac3$LymphN)
-espac3$ResecM <- as.factor(espac3$ResecM)
-espac3$Rstatus <- as.factor(espac3$Rstatus)
-espac3$Stage <- as.factor(espac3$Stage)
-espac3$WHO <- as.factor(espac3$WHO)
-espac3$Smoke <- as.factor(espac3$Smoke)
-espac3$ConMedCond <- as.factor(espac3$ConMedCond)
-espac3$Diabetic <- as.factor(espac3$Diabetic)
-espac3$LocalInv <- as.factor(espac3$LocalInv)
-espac3$PreOpCA199 <- as.numeric(espac3$PreOpCA199)
-espac3$PostOpCA199 <- as.numeric(espac3$PostOpCA199)
-espac3$MaxTumSiz <- as.numeric(espac3$MaxTumSiz)
-espac3$OS_cen <- as.numeric(espac3$OS_cen)
+md.pattern(espac3)
+
 espac3$PostOpCA199 <- log(espac3$PostOpCA199+1)
+espac3$LymphN <- as.factor(espac3$LymphN)
+espac3$Diff_Status <- as.factor(espac3$Diff_Status)
+espac3$Stage <- as.factor(espac3$Stage)
+espac3$PostOpCA199 <- as.numeric(espac3$PostOpCA199)
+espac3$OS_cen <- as.numeric(espac3$OS_cen)
 
-espac3_2$PostOpCA199 <- log(espac3_2$PostOpCA199+1)
-espac3_2$MaxTumSiz <- sqrt(espac3_2$MaxTumSiz)
+espac3 <- espac3[-which(espac3$Diff_Status == "Undifferentialted"),]
+espac3$Diff_Status<- droplevels(espac3$Diff_Status)
+# espac3 <- espac3[-which(espac3$Stage == 4)]
+# espac3p <- espac3[complete.cases(espac3),]
 
+set.seed(882)
+espac3_mice <- mice(espac3)
+espac3_imp <- complete(espac3_mice)
 
+saveRDS(espac3_imp,  "Data/espac3clean.rds")
 
+# merge with other dataset
 
+espac3m <- merge(espac3_gem, dat, by = "PatID")
+espac3m <- espac3m[,which(colnames(espac3m) %in% c("LymphN.x","Stage","Diff_Status"
+                                        ,"PostOpCA199.x", "stime",
+                                        "OS_cen"))]
 
+length(which(is.na(espac3m$PostOpCA199.x)))
+espac3m <- espac3m[-which(is.na(espac3m$PostOpCA199)),]
+espac3m <- espac3m[-which(espac3m$Diff_Status == "Undifferentialted"),]
+
+espac3m$LymphN.x <- as.factor(espac3m$LymphN.x)
+espac3m$Stage <- as.factor(espac3m$Stage)
+espac3m$Diff_Status <- as.factor(espac3m$Diff_Status)
+espac3m$Diff_Status<- droplevels(espac3m$Diff_Status)
+espac3m$PostOpCA199.x <- as.numeric(espac3m$PostOpCA199.x)
+espac3m$OS_cen <- as.numeric(espac3m$OS_cen)
+espac3m$PostOpCA199.x <- log(espac3m$PostOpCA199.x+1)
+
+set.seed(882)
+imp_mer <- mice(espac3m)
+imp_mer <- complete(imp_mer)
+
+saveRDS(imp_mer, "Data/mergedEspac.rds")
+
+# length(which(espac3$Stage==1))
 
