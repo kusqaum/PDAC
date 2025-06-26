@@ -1,25 +1,42 @@
 library(flexsurv)
-
-
+library(survival)
+library(MASS)
 getwd()
 
 library(ggpubr)
 # read data
 espac3 <- readRDS("Data/espac3clean.rds")
-espac_merged <- readRDS("Data/mergedEspac.rds")
 
+# first cox model w// all covars
+cmFull <- coxph(Surv(stime, OS_cen)~ LymphN + ResecM + WHO +Diff_Status +
+                  Diabetic + LocalInv + PostOpCA199 + MaxTumSiz,
+                data = espac3)
 
+# backward selection
+cm_step <- list()
+kVal <- 2:5
+for(k in kVal){
+  cm_step[[paste0(k)]] <- stepAIC(cmFull, direction = 'backward', trace = F, k=k) 
+}
 
-flsm <- flexsurvspline(Surv(stime, OS_cen) ~ PostOpCA199+ LymphN+
-                       Stage+ Diff_Status,
-                       data = espac3, k = 3)
+AIC(cm_step$`2`)
+AIC(cm_step$`3`)
+AIC(cm_step$`4`)
+AIC(cm_step$`5`)
+anova(cm_step$`2`,cm_step$`3`, cm_step$`4`, cm_step$`5`)
+
+cm_step$`2`$formula
+
+# fit flexible parametric model with splines
+flsm <- flexsurvspline(Surv(stime, OS_cen) ~ LymphN + ResecM + 
+                         Diff_Status + PostOpCA199,
+                       data = espac3, k = 5) #k=5 is best
 
 flsm
 
 
-table(espac3$Stage)
-table(espac3$Diff_Status)
-table(espac3$LymphN)
+
+
 
 setwd("/Users/richardjackson/Documents/GitHub/pscRepository/Models/PDAC/Gem_model")
 
@@ -28,14 +45,3 @@ dir()
 
 ggarrange(plotlist=CFM$datavis)
 
-
-
-flsm2 <- flexsurvspline(Surv(stime, OS_cen) ~ PostOpCA199.x + LymphN.x +
-                          Diff_Status + Stage,
-                       data = espac_merged, k = 3)
-
-
-
-
-plot(flsm)
-plot(flsm2)
