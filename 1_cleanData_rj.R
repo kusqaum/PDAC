@@ -13,8 +13,27 @@ espac3_gem <- espac3_L[espac3_L$Arm == "GEM",]
 espac3$stime <- as.numeric(difftime(as.Date(espac3$OS_dt_2), as.Date(espac3$Surg_dt), units = "days")/30.44)
 
 
-espac3 <- espac3[,which(colnames(espac3) %in% c("LymphN","Stage","Diff_Status","PostOpCA199", 
-                                                  "stime", "OS_cen"))]
+espac3 <- espac3[which(espac3$Ductal),]
+
+
+espac3[1:3,]
+
+
+
+espac3 <- espac3[,which(colnames(espac3) %in% c("LymphN","Diff_Status","PostOpCA199","ResecM","WHO","Diabetic","LocalInv",
+                                                  "stime", "OS_cen","MaxTumSiz"))]
+
+
+
+which(is.na(espac3$PostOpCA199)|is.na(espac3$MaxTumSiz))
+
+
+espac3[1:3,]
+
+
+table(espac3$TumourType)
+
+
 
 
 # retain patients with baseline measure of ca199
@@ -30,6 +49,10 @@ espac3$Stage <- as.factor(espac3$Stage)
 espac3$PostOpCA199 <- as.numeric(espac3$PostOpCA199)
 espac3$OS_cen <- as.numeric(espac3$OS_cen)
 
+
+### log transformation ca199
+### sqrt transformation for max tumour size
+
 espac3 <- espac3[-which(espac3$Diff_Status == "Undifferentialted"),]
 
 
@@ -39,14 +62,13 @@ espac3$Diff_Status <- droplevels(espac3$Diff_Status)
 # espac3 <- espac3[-which(espac3$Stage == 4)]
 # espac3p <- espac3[complete.cases(espac3),]
 
-set.seed(204)
-=======
 install.packages("mice")
 library(mice)
 set.seed(882)
-
 espac3_mice <- mice(espac3)
-espac3_imp <- cc(espac3_mice)
+espac3_imp <- complete(espac3_mice)
+
+?complete
 
 saveRDS(espac3_imp,  "Data/espac3clean.rds")
 
@@ -72,7 +94,7 @@ espac3m$PostOpCA199.x <- as.numeric(espac3m$PostOpCA199.x)
 espac3m$OS_cen <- as.numeric(espac3m$OS_cen)
 espac3m$PostOpCA199.x <- log(espac3m$PostOpCA199.x+1)
 
-set.seed(73)
+set.seed(882)
 imp_mer <- mice(espac3m)
 imp_mer <- complete(imp_mer)
 
