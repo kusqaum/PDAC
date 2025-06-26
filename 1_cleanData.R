@@ -33,7 +33,7 @@ espac3$Diff_Status<- droplevels(espac3$Diff_Status)
 # espac3 <- espac3[-which(espac3$Stage == 4)]
 # espac3p <- espac3[complete.cases(espac3),]
 
-set.seed(882)
+set.seed(204)
 espac3_mice <- mice(espac3)
 espac3_imp <- complete(espac3_mice)
 
@@ -58,7 +58,7 @@ espac3m$PostOpCA199.x <- as.numeric(espac3m$PostOpCA199.x)
 espac3m$OS_cen <- as.numeric(espac3m$OS_cen)
 espac3m$PostOpCA199.x <- log(espac3m$PostOpCA199.x+1)
 
-set.seed(882)
+set.seed(73)
 imp_mer <- mice(espac3m)
 imp_mer <- complete(imp_mer)
 
