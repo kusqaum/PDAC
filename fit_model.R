@@ -33,7 +33,7 @@ flsm <- flexsurvspline(Surv(stime, OS_cen) ~ LymphN + ResecM +
                        data = espac3, k = 5) #k=5 is best
 
 flsm
-
+saveRDS(flsm, "Output/Models/flsm.rds")
 
 
 
