@@ -1,9 +1,14 @@
 #
+
 library(flexsurv)
+library(survival)
+source("Code/KMplot.R")
+
 mod <- readRDS("Output/Models/flsm.rds")
 espac3 <- readRDS("Data/espac3clean.rds")
 
 mod_coef <- mod$coefficients
+means <- mod$datameans
 
 colnames(espac3)
 mod_coef <- mod_coef[-grep('gamma', names(mod_coef))]
@@ -23,16 +28,30 @@ mod_coef
 # mod_coef[1]*(espac3_c[1,1]) + (mod_coef[2]* espac3_c[1,2]) + 
 #   (mod_coef[3]*espac3_c[3,1]) + (mod_coef[5]*espac3_c[4,1])
 
-data <- espac3_c
-(mod_coef[1]*data[1,1]) + (mod_coef[2]* data[1,2]) + 
-  (mod_coef[3]*data[1,3]) + (mod_coef[5]*data[1,4]) # 1.245526
-means <- flsm$datameans
-data$rg <- NULL
-data$m <- NULL
-for(row in 1:nrow(data)){
+espac3_c
+#individual
+#lets look at row 1 only:
+mod_coef
+means
+espac3_c[1,]
+# multiply coef by data val
+0.4876152*(1) + (0.1805322*0) + (-0.4160534*0)+(0.2671471*(6.222576)) #2.149958
+#multiply coef by data val mean centre ca19
+0.4876152*(1) + (0.1805322*0) + (-0.4160534*0)+(0.2671471*(6.222576-3.3404581))
+# multiply coef by all covariates mean centred
+0.4876152*(1-0.7138643) + (0.1805322*(0-0.3923304)) + (-0.4160534*(0-0.6312684))+(0.2671471*(6.222576-3.3404581))
+(mod_coef[1]*espac3_c[1,1]) + (mod_coef[2]* espac3_c[1,2]) + 
+  (mod_coef[3]*espac3_c[1,3]) + (mod_coef[5]*espac3_c[1,4]) # 2.149958
+# lypmh                           #resec
+(0.4876152 *(espac3_c[1,1])) + (0.1805322* (espac3_c[1,2])) + 
+  (-0.4160534*(espac3_c[1,3])) + (0.2671471*(espac3_c[1,4]-3.3404581)) # 1.257565
+
+espac3_c$lp <- NULL
+
+for(row in 1:nrow(espac3_c)){
   #coeff <- mod_coef
-  # for (col in 1:ncol(data)) {
-  if(data$Diff_Status[row]==1|data$Diff_Status[row]==0){
+  # for (col in 1:ncol(espac3_c)) {
+  if(espac3_c$Diff_Status[row]==1|espac3_c$Diff_Status[row]==0){
     coeff <- mod_coef
     coef_L <- coeff[1]
     coef_r <- coeff[2]
@@ -43,7 +62,7 @@ for(row in 1:nrow(data)){
     mean_dif <- means[3]
     mean_ca19 <- means[5]
   }
-  if(data$Diff_Status[row]==2){
+  if(espac3_c$Diff_Status[row]==2){
     coeff <- mod_coef
     coef_L <- coeff[1]
     coef_r <- coeff[2]
@@ -55,22 +74,32 @@ for(row in 1:nrow(data)){
     mean_ca19 <- means[5]
   }
     
-  data$rg[row] <- (coef_L*data$LymphN[row])+(coef_r*data$ResecM[row])+(coef_dif*data$Diff_Status[row])+(coef_ca19*data$PostOpCA199[row])
-  #data$m[row] <- (coef_L*0)+(coef_r*0)+(coef_dif*0)+(coef_ca19*mean_ca19)  
-    # if(data$Diff_Status[row]==0){
-    #   coef_L <- mod_coef[1]
-    #   coef_r <- mod_coef[2]
-    #   coef_dif <- mod_coef[4]
-    #   coef_ca19 <- mod_coef[5]
-    #   data$rg <- (coef_L*data[row,col])+(coef_r*data[row,col])+(coef_dif*data[row,col])+(coef_ca19*data[row,col])
-    # }
-    #if(){
-      
-    #}
-  
+  espac3_c$lp[row] <- (coef_L*(espac3_c$LymphN[row]-(mean_L)))+
+    (coef_r*(espac3_c$ResecM[row]-(mean_r)))+(coef_dif*(espac3_c$Diff_Status[row]-(mean_dif)))+
+    (coef_ca19*(espac3_c$PostOpCA199[row] - mean_ca19))
+  # espac3_c$m[row] <- 
 }
-# data$lp <- data$rg - data$m
 
-data$pred <- predict(flsm, type = 'lp')
+espac3_c$pred <- predict(mod, type = 'lp')
+
+range(espac3_c$pred$.pred_link)
+# ?predict.flexsurvreg
 
 
+#### cut lp into rgs
+espac3_c$rg <- cut(espac3_c$pred$.pred_link, breaks = 4,
+                   )
+
+espac3_c$rg_2 <- cut(espac3_c$lp, breaks = 4)
+
+espac3_c$stime <- espac3$stime
+espac3_c$cen <- espac3$OS_cen
+
+
+KMplot(time = espac3_c$stime, cen = espac3_c$cen, fac = espac3_c$rg,
+       summStat=T,LRtest=F, ylab="Survival probability",
+       xlab="Time",col=c("pink2","red","green3", "blue4"),lwd=4)
+
+KMplot(time = espac3_c$stime, cen = espac3_c$cen, fac = espac3_c$rg_2,
+       summStat=T,LRtest=F, ylab="Survival probability",
+       xlab="Time",col=c("pink2","red","green3", "blue4"),lwd=4)
