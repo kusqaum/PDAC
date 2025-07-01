@@ -87,10 +87,14 @@ range(espac3_c$pred$.pred_link)
 
 
 #### cut lp into rgs
-espac3_c$rg <- cut(espac3_c$pred$.pred_link, breaks = 4,
-                   )
+# espac3_c$rg <- cut(espac3_c$pred$.pred_link, breaks = 4,
+#                    labels = c("1","2","3","4"))
 
-espac3_c$rg_2 <- cut(espac3_c$lp, breaks = 4)
+lp_q <- quantile(espac3_c$pred$.pred_link, c(0.25,0.5,0.75))
+espac3_c$rg <- cut(espac3_c$pred$.pred_link, breaks = c(-Inf, lp_q, Inf), 
+                  labels = c("g1","g2","g3","g4"))
+
+# espac3_c$rg_2 <- cut(espac3_c$lp, breaks = 4)
 
 espac3_c$stime <- espac3$stime
 espac3_c$cen <- espac3$OS_cen
@@ -104,3 +108,5 @@ KMplot(time = espac3_c$stime, cen = espac3_c$cen, fac = espac3_c$rg,
 KMplot(time = espac3_c$stime, cen = espac3_c$cen, fac = espac3_c$rg_2,
        summStat=T,LRtest=F, ylab="Survival probability",
        xlab="Time",col=c("pink2","red","green3", "blue4"),lwd=4)
+
+lp <- predict(mod)
