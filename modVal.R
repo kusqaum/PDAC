@@ -100,6 +100,7 @@ KMplot(time = espac3_c$stime, cen = espac3_c$cen, fac = espac3_c$rg,
        summStat=T,LRtest=F, ylab="Survival probability",
        xlab="Time",col=c("pink2","red","green3", "blue4"),lwd=4)
 
+
 KMplot(time = espac3_c$stime, cen = espac3_c$cen, fac = espac3_c$rg_2,
        summStat=T,LRtest=F, ylab="Survival probability",
        xlab="Time",col=c("pink2","red","green3", "blue4"),lwd=4)
