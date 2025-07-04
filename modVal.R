@@ -9,10 +9,12 @@ espac3 <- readRDS("Data/espac3clean.rds")
 
 mod_coef <- mod$coefficients
 means <- mod$datameans
-
-colnames(espac3)
+knot <- mod$knots
+lam <- ((max(knot)-knot[2]))/((max(knot)-min(knot)))
+gam <- mod$coefficients[grep("gamma", names(mod$coefficients))]
 mod_coef <- mod_coef[-grep('gamma', names(mod_coef))]
 covs <- substr(names(mod_coef),1,4)
+
 
 espac3_c <- espac3[,grepl(
   paste0(covs[1],"|",covs[2],"|",covs[3],"|",
@@ -22,29 +24,6 @@ espac3_c <- espac3[,grepl(
 x <- sapply(espac3_c, is.factor)
 espac3_c[,x] <- as.data.frame(apply(espac3_c[,x],2,as.numeric))
 
-mod_coef
-# lymph + resec + 
-#diff + postop
-# mod_coef[1]*(espac3_c[1,1]) + (mod_coef[2]* espac3_c[1,2]) + 
-#   (mod_coef[3]*espac3_c[3,1]) + (mod_coef[5]*espac3_c[4,1])
-
-espac3_c
-#individual
-#lets look at row 1 only:
-mod_coef
-means
-espac3_c[1,]
-# multiply coef by data val
-0.4876152*(1) + (0.1805322*0) + (-0.4160534*0)+(0.2671471*(6.222576)) #2.149958
-#multiply coef by data val mean centre ca19
-0.4876152*(1) + (0.1805322*0) + (-0.4160534*0)+(0.2671471*(6.222576-3.3404581))
-# multiply coef by all covariates mean centred
-0.4876152*(1-0.7138643) + (0.1805322*(0-0.3923304)) + (-0.4160534*(0-0.6312684))+(0.2671471*(6.222576-3.3404581))
-(mod_coef[1]*espac3_c[1,1]) + (mod_coef[2]* espac3_c[1,2]) + 
-  (mod_coef[3]*espac3_c[1,3]) + (mod_coef[5]*espac3_c[1,4]) # 2.149958
-# lypmh                           #resec
-(0.4876152 *(espac3_c[1,1])) + (0.1805322* (espac3_c[1,2])) + 
-  (-0.4160534*(espac3_c[1,3])) + (0.2671471*(espac3_c[1,4]-3.3404581)) # 1.257565
 
 espac3_c$lp <- NULL
 
@@ -74,21 +53,34 @@ for(row in 1:nrow(espac3_c)){
     mean_ca19 <- means[5]
   }
     
-  espac3_c$lp[row] <- (coef_L*(espac3_c$LymphN[row]-(mean_L)))+
-    (coef_r*(espac3_c$ResecM[row]-(mean_r)))+(coef_dif*(espac3_c$Diff_Status[row]-(mean_dif)))+
-    (coef_ca19*(espac3_c$PostOpCA199[row] - mean_ca19))
-  # espac3_c$m[row] <- 
+  # espac3_c$lp[row] <- (coef_L*(espac3_c$LymphN[row]-(mean_L)))+
+  #   (coef_r*(espac3_c$ResecM[row]-(mean_r)))+(coef_dif*(espac3_c$Diff_Status[row]-(mean_dif)))+
+  #   (coef_ca19*(espac3_c$PostOpCA199[row] - mean_ca19))
+  espac3_c$lp[row] <- (coef_L*(espac3_c$LymphN[row]))+
+    (coef_r*(espac3_c$ResecM[row]))+(coef_dif*(espac3_c$Diff_Status[row]))+
+    (coef_ca19*(espac3_c$PostOpCA199[row])) 
 }
 
+#change back to fac
+espac3_c$LymphN <- as.factor(espac3_c$LymphN)
+espac3_c$ResecM <- as.factor(espac3_c$ResecM)
+espac3_c$Diff_Status <- as.factor(espac3_c$Diff_Status)
+
+eta <- rowSums(basis(knot, log(espac3$stime)) * gam)
+
+espac3_c$lp_eta <- eta+espac3_c$lp
 espac3_c$pred <- predict(mod, type = 'lp')
 
 range(espac3_c$pred$.pred_link)
 # ?predict.flexsurvreg
 
 
-#### cut lp into rgs
-# espac3_c$rg <- cut(espac3_c$pred$.pred_link, breaks = 4,
-#                    labels = c("1","2","3","4"))
+
+
+
+#### cut lp into rgs ####
+espac3_c$rg <- cut(espac3_c$lp_eta, breaks = 4,
+                   labels = c("1","2","3","4"))
 
 lp_q <- quantile(espac3_c$pred$.pred_link, c(0.25,0.5,0.75))
 espac3_c$rg <- cut(espac3_c$pred$.pred_link, breaks = c(-Inf, lp_q, Inf), 
@@ -104,9 +96,15 @@ KMplot(time = espac3_c$stime, cen = espac3_c$cen, fac = espac3_c$rg,
        summStat=T,LRtest=F, ylab="Survival probability",
        xlab="Time",col=c("pink2","red","green3", "blue4"),lwd=4)
 
-
+sob <- Surv(espac3_c$stime, espac3_c$cen)
+concordance(sob ~ rg, data = espac3_c)
+coxph(sob ~rg, data = espac3_c)
 KMplot(time = espac3_c$stime, cen = espac3_c$cen, fac = espac3_c$rg_2,
        summStat=T,LRtest=F, ylab="Survival probability",
        xlab="Time",col=c("pink2","red","green3", "blue4"),lwd=4)
+sfRG <- survfit(Surv(stime,cen)~rg, data = espac3_c)
+plot(sfRG, col = c(1,2,3,4))
 
 lp <- predict(mod)
+summary(lp)
+# 
