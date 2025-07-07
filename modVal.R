@@ -10,7 +10,7 @@ espac3 <- readRDS("Data/espac3clean.rds")
 mod_coef <- mod$coefficients
 means <- mod$datameans
 knot <- mod$knots
-lam <- ((max(knot)-knot[2]))/((max(knot)-min(knot)))
+
 gam <- mod$coefficients[grep("gamma", names(mod$coefficients))]
 mod_coef <- mod_coef[-grep('gamma', names(mod_coef))]
 covs <- substr(names(mod_coef),1,4)
@@ -66,14 +66,13 @@ espac3_c$LymphN <- as.factor(espac3_c$LymphN)
 espac3_c$ResecM <- as.factor(espac3_c$ResecM)
 espac3_c$Diff_Status <- as.factor(espac3_c$Diff_Status)
 
+head(mod$dfns)
 eta <- rowSums(basis(knot, log(espac3$stime)) * gam)
 
 espac3_c$lp_eta <- eta+espac3_c$lp
 espac3_c$pred <- predict(mod, type = 'lp')
 
 range(espac3_c$pred$.pred_link)
-# ?predict.flexsurvreg
-
 
 
 
@@ -84,27 +83,44 @@ espac3_c$rg <- cut(espac3_c$lp_eta, breaks = 4,
 
 lp_q <- quantile(espac3_c$pred$.pred_link, c(0.25,0.5,0.75))
 espac3_c$rg <- cut(espac3_c$pred$.pred_link, breaks = c(-Inf, lp_q, Inf), 
-                  labels = c("g1","g2","g3","g4"))
+                  labels = c("Risk Group 1","Risk Group 2","Risk Group 3","Risk Group 4"))
 
 # espac3_c$rg_2 <- cut(espac3_c$lp, breaks = 4)
 
 espac3_c$stime <- espac3$stime
 espac3_c$cen <- espac3$OS_cen
 
-
-KMplot(time = espac3_c$stime, cen = espac3_c$cen, fac = espac3_c$rg,
-       summStat=T,LRtest=F, ylab="Survival probability",
-       xlab="Time",col=c("pink2","red","green3", "blue4"),lwd=4)
-
-sob <- Surv(espac3_c$stime, espac3_c$cen)
-concordance(sob ~ rg, data = espac3_c)
-coxph(sob ~rg, data = espac3_c)
-KMplot(time = espac3_c$stime, cen = espac3_c$cen, fac = espac3_c$rg_2,
-       summStat=T,LRtest=F, ylab="Survival probability",
-       xlab="Time",col=c("pink2","red","green3", "blue4"),lwd=4)
 sfRG <- survfit(Surv(stime,cen)~rg, data = espac3_c)
 plot(sfRG, col = c(1,2,3,4))
 
-lp <- predict(mod)
-summary(lp)
-# 
+KMplot(time = espac3_c$stime, cen = espac3_c$cen, fac = espac3_c$rg,
+       LRtest=F,
+       summStat = F,
+       leg.y = 0.94,
+      
+       ylab="Overall Survival",
+       xlab="Time (months)",col=c("pink2","purple","cyan3", "dodgerblue3"),lwd=4)
+
+c_slope <- coxph(mod$data$m[,1] ~ espac3_c$pred$.pred_link)
+c_slope$concordance[6] # 0.6644871  
+c_slope_se <- c_slope$concordance[7]
+concordance(c_slope)
+#calculate somer's d
+(34201     -17246  )/(34201   + 17246   + 92  +   19 + 0  ) #0.3289742 
+#or 
+2*(c_slope$concordance[6]-0.5)
+# 0.3289742 
+
+
+cm <- coxph(mod$data$m[,1]~rg, data = espac3_c)
+
+
+# create CFM
+cfm <- pscCFM(mod, dataSumm = T, dataVis = T)
+
+save(cfm, file = "Output/Models/cfm.Rds")
+
+
+
+
+
