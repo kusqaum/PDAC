@@ -2,7 +2,8 @@
 
 library(flexsurv)
 library(survival)
-source("Code/KMplot.R")
+library(survminer)
+library(cowplot)
 
 mod <- readRDS("Output/Models/flsm.rds")
 espac3 <- readRDS("Data/espac3clean.rds")
@@ -91,15 +92,15 @@ espac3_c$stime <- espac3$stime
 espac3_c$cen <- espac3$OS_cen
 
 sfRG <- survfit(Surv(stime,cen)~rg, data = espac3_c)
-plot(sfRG, col = c(1,2,3,4))
 
-KMplot(time = espac3_c$stime, cen = espac3_c$cen, fac = espac3_c$rg,
-       LRtest=F,
-       summStat = F,
-       leg.y = 0.94,
-      
-       ylab="Overall Survival",
-       xlab="Time (months)",col=c("pink2","purple","cyan3", "dodgerblue3"),lwd=4)
+png("Output/Images/e3_gem_discrim_ka.png", width = 600, height = 600)
+ggsurvplot(sfRG, data=espac3_c,
+           palette = c("pink2","purple","cyan3", "dodgerblue3"),
+           legend.title = element_blank(), ggtheme = theme_minimal(base_size=20),
+           legend.labs = c("Risk Group 1", "Risk Group 2", "Risk Group 3", "Risk Group 4"),
+           xlab= "Time (months)"
+)
+dev.off()
 
 c_slope <- coxph(mod$data$m[,1] ~ espac3_c$pred$.pred_link)
 c_slope$concordance[6] # 0.6644871  
@@ -113,10 +114,37 @@ concordance(c_slope)
 
 
 cm <- coxph(mod$data$m[,1]~rg, data = espac3_c)
-
+summary(cm)
 
 # create CFM
 cfm <- pscCFM(mod, dataSumm = T, dataVis = T)
+
+# get plots
+
+plots_lym <- plot(cfm$datavis$LymphN)
+plots_rm <- plot(cfm$datavis$ResecM)#
+plots_diff <- plot(cfm$datavis$Diff_Status)
+plots_ca19 <- plot(cfm$datavis$PostOpCA199)
+
+png("Output/Images/e3_gem_ka.png", width = 600, height = 2100)
+plot_grid(plots_lym,
+          plots_rm,
+          plots_diff,
+          plots_ca19, ncol=1)
+dev.off()
+
+# finsih this off
+# png("Output/Images/e3_dataSumm_ka.png", width = 600, height = 600)
+datasumm <- cfm$datasumm
+
+sum_lym <- plot(cfm$datasumm$LymphN, xlim = 60)
+sum_rm <- plot(cfm$datasumm$ResecM)#
+sum_diff <- plot(cfm$datasumm$Diff_Status)
+sum_ca19 <- plot(cfm$datasumm$PostOpCA199)
+
+# png("Output/Images/e3_dataSumm_ka.png", width = 600, height = 600)
+
+dev.off()
 
 save(cfm, file = "Output/Models/cfm.Rds")
 
