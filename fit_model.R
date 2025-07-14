@@ -7,6 +7,8 @@ library(ggpubr)
 # read data
 espac3 <- readRDS("Data/espac3clean.rds")
 
+survfit(Surv(stime,OS_cen)~1, data=espac3)
+
 # first cox model w// all covars
 cmFull <- coxph(Surv(stime, OS_cen)~ LymphN + ResecM + WHO +Diff_Status +
                   Diabetic + LocalInv + PostOpCA199 + MaxTumSiz,
@@ -26,7 +28,7 @@ AIC(cm_step$`5`)
 anova(cm_step$`2`,cm_step$`3`, cm_step$`4`, cm_step$`5`)
 
 cm_step$`2`$formula
-
+summary(cm_step$`2`)
 # fit flexible parametric model with splines
 flsm <- flexsurvspline(Surv(stime, OS_cen) ~ LymphN + ResecM + 
                          Diff_Status + PostOpCA199,

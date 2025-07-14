@@ -4,6 +4,8 @@ library(flexsurv)
 library(survival)
 library(survminer)
 library(cowplot)
+library(psc)
+library(Cairo)
 
 mod <- readRDS("Output/Models/flsm.rds")
 espac3 <- readRDS("Data/espac3clean.rds")
@@ -93,13 +95,26 @@ espac3_c$cen <- espac3$OS_cen
 
 sfRG <- survfit(Surv(stime,cen)~rg, data = espac3_c)
 
-png("Output/Images/e3_gem_discrim_ka.png", width = 600, height = 600)
+CairoPNG("Output/Images/e3_gem_discrim_ka.png", 
+    width = 600, height = 600, bg = "transparent")
 ggsurvplot(sfRG, data=espac3_c,
            palette = c("pink2","purple","cyan3", "dodgerblue3"),
-           legend.title = element_blank(), ggtheme = theme_minimal(base_size=20),
+           xlim = c(0,70),
+           legend = c(0.65,0.85),
+           legend.title = element_blank(), 
+           #ggtheme = theme(panel.grid.major = element_line(color = "grey", linetype = "dashed")),
            legend.labs = c("Risk Group 1", "Risk Group 2", "Risk Group 3", "Risk Group 4"),
-           xlab= "Time (months)"
-)
+           xlab= "Time (months)")$plot+
+  geom_hline(yintercept = seq(0,1, by = 0.1), lty = 2, colour="grey") +
+  geom_vline(xintercept = seq(0,70, by = 10), lty = 2, colour="grey") + 
+  theme(panel.background = element_rect(fill='transparent'), 
+      plot.background = element_rect(fill='transparent', colour=NA),
+      legend.background = element_rect(fill='transparent'), 
+      legend.box.background = element_rect(fill='transparent'),
+      axis.title.x = element_text(face="italic", colour="white"),
+      axis.title.y = element_text(face = "italic", colour="white"),
+      legend.text = element_text(colour="white"))
+  
 dev.off()
 
 c_slope <- coxph(mod$data$m[,1] ~ espac3_c$pred$.pred_link)
@@ -126,21 +141,17 @@ plots_rm <- plot(cfm$datavis$ResecM)#
 plots_diff <- plot(cfm$datavis$Diff_Status)
 plots_ca19 <- plot(cfm$datavis$PostOpCA199)
 
-png("Output/Images/e3_gem_ka.png", width = 600, height = 2100)
+CairoPNG("Output/Images/e3_gem_ka.png", width = 400, height = 700,
+    bg = "transparent")
 plot_grid(plots_lym,
           plots_rm,
           plots_diff,
           plots_ca19, ncol=1)
 dev.off()
 
-# finsih this off
-# png("Output/Images/e3_dataSumm_ka.png", width = 600, height = 600)
-datasumm <- cfm$datasumm
 
-sum_lym <- plot(cfm$datasumm$LymphN, xlim = 60)
-sum_rm <- plot(cfm$datasumm$ResecM)#
-sum_diff <- plot(cfm$datasumm$Diff_Status)
-sum_ca19 <- plot(cfm$datasumm$PostOpCA199)
+# png("Output/Images/e3_dataSumm_ka.png", width = 600, height = 600)
+datasumm <- cfm$datasumm[[1]]
 
 # png("Output/Images/e3_dataSumm_ka.png", width = 600, height = 600)
 
