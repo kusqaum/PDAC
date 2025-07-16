@@ -25,5 +25,5 @@ plot(comp) +
         axis.text.y = element_text(colour = "white"))
 dev.off()
 summary(comp)
-
+?pscfit()
 
