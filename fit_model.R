@@ -6,11 +6,12 @@ getwd()
 library(ggpubr)
 # read data
 espac3 <- readRDS("Data/espac3clean.rds")
-
-survfit(Surv(stime,OS_cen)~1, data=espac3)
+colnames(espac3)[which(colnames(espac3)=="stime")]<-"time"
+colnames(espac3)[which(colnames(espac3)=="OS_cen")] <- "cen"
+survfit(Surv(time,cen)~1, data=espac3)
 
 # first cox model w// all covars
-cmFull <- coxph(Surv(stime, OS_cen)~ LymphN + ResecM + WHO +Diff_Status +
+cmFull <- coxph(Surv(time, cen)~ LymphN + ResecM + WHO +Diff_Status +
                   Diabetic + LocalInv + PostOpCA199 + MaxTumSiz,
                 data = espac3)
 
@@ -30,12 +31,13 @@ anova(cm_step$`2`,cm_step$`3`, cm_step$`4`, cm_step$`5`)
 cm_step$`2`$formula
 summary(cm_step$`2`)
 # fit flexible parametric model with splines
-flsm <- flexsurvspline(Surv(stime, OS_cen) ~ LymphN + ResecM + 
+flsm <- flexsurvspline(Surv(time, cen) ~ LymphN + ResecM + 
                          Diff_Status + PostOpCA199,
                        data = espac3, k = 5) #k=5 is best
 
 flsm
-saveRDS(flsm, "Output/Models/flsm.rds")
+save(flsm,file = "Output/Models/flsm.R")
+
 
 
 
