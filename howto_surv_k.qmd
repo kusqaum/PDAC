@@ -1,7 +1,9 @@
 ---
 title: "Model Estimated Controls for Survival Outcomes"
 author: "K"
-format: html
+format: 
+  html:
+    self-contained: true
 editor: visual
 ---
 
