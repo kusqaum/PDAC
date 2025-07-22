@@ -94,13 +94,20 @@ Don't forget that the pscfit() function requires the 'time' variables in the dat
 psc <- pscfit(cfm, espac4_gemcap)
 ```
 
-The output of the comparison can be visualised and a summary can be obtained. The plot above shows the effect of each treatment on overall survival in ESPAC-4 patients. The pink line represents the model's predicted overall survival and the orange line represents the data cohort's observed survival.
+The output of the comparison can be visualised. The plot below visualises the effect of each treatment on ESPAC-4 patients. The pink line represents the model's predicted survival estimates (if the ESPAC-4 patients had been treated with GEM) and the orange line represents the data cohort's observed survival estimates.
 
 ```{r}
 plot(psc)
+```
+
+The summary of the model can be obtained using the generic summary() function to show the posterior density.
+
+```{r}
 
 summary(psc)
 ```
+
+$\beta$, the efficacy parameter, is given which is a measurement of the distance between the observed data and the model estimate. The 2.5 and 97.5% quantiles are also given. The odds ratio comparing the experimental treatment to the control can be calculated as exp($\beta$), in this case exp(-0.4675).
 
 ## Take homes
 
