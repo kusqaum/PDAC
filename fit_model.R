@@ -1,6 +1,7 @@
 library(flexsurv)
 library(survival)
 library(MASS)
+source("Code/summFlexsurvmod.R")
 getwd()
 
 library(ggpubr)
