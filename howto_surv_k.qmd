@@ -23,6 +23,7 @@ Let's first install and load the 'psc' and other necessary packages:
 # install.package("psc")
 library(psc)
 library(survival)
+library(ggpubr)
 ```
 
 ## An example
@@ -79,8 +80,10 @@ cfm$datasumm$summ_Table
 
 plots <- list()
 for(p in 1:length(cfm$datavis)){
-  plots[[p]] <- plot(cfm$datavis[[p]])
+  plots[[p]] <- (cfm$datavis[[p]])
 }
+
+ggarrange(plotlist = plots, ncol = 2)
 
 ```
 
@@ -100,14 +103,28 @@ The output of the comparison can be visualised. The plot below visualises the ef
 plot(psc)
 ```
 
-The summary of the model can be obtained using the generic summary() function to show the posterior density.
+The summary of the model can be obtained using the generic summary() function to show the posterior density. The posterior estimates of the deviance information criterion (DIC) and the efficacy parameter, $\beta$, are calculated and shown.
+
+$\beta$ is a measurement of the distance between the observed data and the model estimate. The 2.5 and 97.5% quantiles are also given. The odds ratio comparing the experimental treatment to the control can be calculated as exp($\beta$), in this case exp(-0.466452).
 
 ```{r}
 
 summary(psc)
 ```
 
-$\beta$, the efficacy parameter, is given which is a measurement of the distance between the observed data and the model estimate. The 2.5 and 97.5% quantiles are also given. The odds ratio comparing the experimental treatment to the control can be calculated as exp($\beta$), in this case exp(-0.4675).
+We can extract the posterior distribution of the 'psc' and can view its autocorrelation and trace
+
+```{r}
+posterior <- psc$posterior
+head(posterior[1:3,])
+
+# autocorrelation
+acf(posterior$beta)
+
+# trace
+plot(posterior$beta, type = 's')
+
+```
 
 ## Take homes
 
