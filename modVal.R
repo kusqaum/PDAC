@@ -7,6 +7,7 @@ library(cowplot)
 library(psc)
 library(Cairo)
 source("Code/discrimKMPlot.R")
+source("Code/summ_cox_html.R")
 
 load("Output/Models/flsm.R")
 espac3 <- readRDS("Data/espac3clean.rds")
@@ -68,18 +69,18 @@ summary(cm)
 
 
 
-### code for external validation...
+####  external validation... ####
 
-expred <- predict(flsm, newdata = espac4_gem, type = 'lp')
-exlp <- expred$.pred_link
+xpred <- predict(flsm, newdata = espac4_gem, type = 'lp')
+xlp <- expred$.pred_link
 
 xsobj <- Surv(time = espac4_gem$time, event = espac4_gem$cen)
-xquant <- quantile(exlp, c(0.15,0.50,0.85))
 
-exrg <- cut(exlp, breaks = c(-Inf, xquant, Inf),
+
+xrg <- cut(xlp, breaks = c(-Inf, lp_q, Inf),
             labels = c("Risk Group 1","Risk Group 2","Risk Group 3","Risk Group 4"))
 
-xfit <- survfit(xsobj~exrg)
+xfit <- survfit(xsobj~xrg)
 #discrim
 CairoPNG("Output/Images/e4_gem_discrim_ka.png", 
          width = 600, height = 600, bg = "transparent")
@@ -105,10 +106,14 @@ dev.off()
 
 
 #calib
-xcm <- coxph(xsobj~exlp)
+xcm <- coxph(xsobj~xlp)
 summary(xcm) # slope 0.544
 xcm$concordance # 0.59
+2*(xcm$concordance[6]-0.5)
 
-xcmrg <- coxph(xsobj~exrg)
+xcmrg <- coxph(xsobj~xrg)
 summary(xcmrg)
-xcmrg$coefficients
+res <- summary(xcmrg)$conf.int
+
+
+temp <- summ_cox_html(xcmrg)
