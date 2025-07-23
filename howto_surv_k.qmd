@@ -78,12 +78,7 @@ It is possible to visualise and summarise the data that was used to fit this mod
 ```{r}
 cfm$datasumm$summ_Table
 
-plots <- list()
-for(p in 1:length(cfm$datavis)){
-  plots[[p]] <- (cfm$datavis[[p]])
-}
-
-ggarrange(plotlist = plots, ncol = 2)
+ggarrange(plotlist = cfm$datavis, ncol = 2)
 
 ```
 
