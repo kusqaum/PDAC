@@ -21,8 +21,8 @@ espac4 <- espac4[which(colnames(espac4) %in% c("LymphN", "ResecM", "Diff_Status"
 espac4$PostOpCA199 <- log(espac4$PostOpCA199+1)
 
 espac4_gem <-espac4[which(espac4$treat=="GEM"),]
-espac4_gemcap <- espac4[which(espac4$treat=="GEMCAP"),]
-espac4_gemcap <- espac4_gemcap[complete.cases(espac4_gemcap),]
+espac4_gemcap <- espac4[which(espac4$treat=="GEMCAP"),] # 365 patients
+espac4_gemcap <- espac4_gemcap[complete.cases(espac4_gemcap),] # 362 (3 patients removed)
 
 
 

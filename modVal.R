@@ -26,7 +26,7 @@ espac3_c <- espac3[,grepl(
   paste0(covs[1],"|",covs[2],"|",covs[3],"|",
          covs[4],"|",covs[5]),colnames(espac3))]
 
-
+#### internal validation ####
 lp <- t(coef %*% t(cov))
 
 espac3_c$pred <- predict(flsm, type = 'lp')
