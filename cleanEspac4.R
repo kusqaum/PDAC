@@ -26,14 +26,20 @@ espac4_gemcap <- espac4_gemcap[complete.cases(espac4_gemcap),] # 362 (3 patients
 
 
 
+e4_gem <- espac4_gem[,which(colnames(espac4_gem)%in% c("LymphN", "ResecM", "Diff_Status", "PostOpCA199"))]
+e4_gem$ResecM1 <- ifelse(e4_gem$ResecM==1, 1, 0)
+e4_gem$LymphN1 <- ifelse(e4_gem$LymphN==1, 1, 0)
+e4_gem$Diff_Status1 <- ifelse(e4_gem$Diff_Status==1,1,0)
+e4_gem$Diff_Status2 <- ifelse(e4_gem$Diff_Status==2,1,0)
 
-
-
+sobj <- Surv(espac4_gem$time, espac4_gem$cen)
+e4_cov <- e4_gem[,5:8]
+e4_cov$PostOpCA199 <- e4_gem$PostOpCA199
+e4_cov$s.obj <- sobj
 # espac4_gem <- espac4_gem[,which(colnames(espac4_gem) %in% c("LymphN", "ResecM", "Diff_Status", "PostOpCA199", "time","cen"))]
 
 
 save(espac4_gem,file = "Data/espac4gem.R")
 save(espac4_gemcap, file = "Data/espac4gemcap.R")
-
-
+save(e4_cov, file = "Data/e4_cov.R")
 
