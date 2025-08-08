@@ -9,13 +9,13 @@ editor: visual
 
 ## Introduction
 
-Model estimated controls (MECs) are statistical models, that can be used to assess the efficacy of new therapies without needing to use clinical trials.
+Model estimated controls (MECs) are statistical models that can be used to assess the efficacy of new therapies without needing to use clinical trials.
 
 MECs can act as counterfactual evidence (a way to predict 'what if?'- i.e., how would patients respond if they had received a different treatment?)
 
 For survival outcomes, MECs can be used as a control to compare the effect of a control treatment against the effect of an observed experimental treatment on overall survival in patients.
 
-We will implement MECs using the 'psc' package which is specifically allows for the comparison of patient groups treated with an experimental treatment against a counterfactual model.
+We will implement MECs using the 'psc' package which specifically allows for the comparison of patient groups treated with an experimental treatment against a counterfactual model.
 
 Let's first install and load the 'psc' and other necessary packages:
 
@@ -66,7 +66,7 @@ str(espac4_gemcap)
 
 ## Fit counterfactual model :)
 
-Now that we have checked the correct variables are in our dataset and everything is encoded correctly, we can turn out flexible parametric model into a counterfactual model. We will use the pscfit() function:
+Now that we have checked the correct variables are in our dataset and that they are encoded correctly, we can turn the flexible parametric model into a counterfactual model. We will use the pscfit() function:
 
 ```{r results='hide',warning=FALSE}
 cfm <- pscCFM(flsm)
