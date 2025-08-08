@@ -10,69 +10,56 @@ source("Code/discrimKMPlot.R")
 source("Code/summ_cox_html.R")
 
 load("Output/Models/flsm.R")
-espac3 <- readRDS("Data/espac3clean.rds")
+# espac3 <- readRDS("Data/espac3clean.rds")
 load("Data/espac4gem.R") # for external validation
 
-mod_coef <- flsm$coefficients
-means <- flsm$datameans
-knot <- flsm$knots
+
+
+
 cov <- model.matrix(flsm)
 gam <- flsm$coefficients[grep("gamma", names(flsm$coefficients))]
 coef <- flsm$coefficients[-grep('gamma', names(flsm$coefficients))]
-covs <- substr(names(coef),1,4)
+
 sobj <- flsm$data$m[,1]
 
-espac3_c <- espac3[,grepl(
-  paste0(covs[1],"|",covs[2],"|",covs[3],"|",
-         covs[4],"|",covs[5]),colnames(espac3))]
 
 #### internal validation ####
 lp <- t(coef %*% t(cov))
 
-espac3_c$pred <- predict(flsm, type = 'lp')
-
-range(espac3_c$pred$.pred_link)
-
-
-lp_q <- quantile(espac3_c$pred$.pred_link, c(0.15,0.5,0.85))
-espac3_c$rg <- cut(espac3_c$pred$.pred_link, breaks = c(-Inf, lp_q, Inf), 
-                  labels = c("Risk Group 1","Risk Group 2","Risk Group 3","Risk Group 4"))
-
-# espac3_c$rg_2 <- cut(espac3_c$lp, breaks = 4)
+lp_q <- quantile(lp, c(0.15,0.5,0.85))
+rg <- cut(lp, breaks = c(-Inf, lp_q, Inf), 
+          labels = c("Risk Group 1","Risk Group 2","Risk Group 3","Risk Group 4"))
 
 
 
-sfRG <- survfit(sobj~espac3_c$rg)
+
+sfRG <- survfit(sobj~rg)
 
 CairoPNG("Output/Images/e3_gem_discrim_ka.png", 
     width = 600, height = 600, bg = "transparent")
-discrimKMPlot(sfRG, data = espac3_c, time = espac3$stime,
+discrimKMPlot(sfRG, data = as.data.frame(cov), time = espac3$stime,
               pal = c("pink2","purple","cyan3", "dodgerblue3"),
               xlim = c(0,70), leg.x = 0.65, leg.y = 0.85, 
               leg.labs = c("Risk Group 1", "Risk Group 2", "Risk Group 3", "Risk Group 4"), 
               vl = 70)
 dev.off()
 
-c_slope <- coxph(flsm$data$m[,1] ~ espac3_c$pred$.pred_link)
-c_slope$concordance[6] # 0.6644871  
-c_slope_se <- c_slope$concordance[7]
-concordance(c_slope)
-#calculate somer's d
-(34201     -17246  )/(34201   + 17246   + 92  +   19 + 0  ) #0.3289742 
-#or 
-2*(c_slope$concordance[6]-0.5)
-# 0.3289742 
 
-
-cm <- coxph(flsm$data$m[,1]~rg, data = espac3_c)
-summary(cm)
-
+# concordance
+cm <- coxph(flsm$data$m[,1]~rg)
+summary(cm)$concordance
+c_statitic <- cm$concordance[6]
+c_statitic_se <- cm$concordance[7]
+2*(cm$concordance[6]-0.5)
+ 
+# slope
+c_slope <- coxph(flsm$data$m[,1] ~ lp)
 
 
 ####  external validation... ####
 
 xpred <- predict(flsm, newdata = espac4_gem, type = 'lp')
-xlp <- expred$.pred_link
+xlp <- xpred$.pred_link
 
 xsobj <- Surv(time = espac4_gem$time, event = espac4_gem$cen)
 
@@ -101,7 +88,11 @@ ggsurvplot(xfit, data=espac4_gem,
         axis.title.y = element_text(face = "italic", colour="white"),
         legend.text = element_text(colour="white"),
         axis.line.x = element_line(colour = "white"),
-        axis.line.y = element_line(colour = "white"))
+        axis.line.y = element_line(colour = "white"),
+        axis.ticks.x = element_line(colour = "white"),
+        axis.ticks.y = element_line(colour = "white"),
+        axis.text.x = element_text(colour = "white"),
+        axis.text.y = element_text(colour = "white"))
 dev.off()
 
 
@@ -116,4 +107,4 @@ summary(xcmrg)
 res <- summary(xcmrg)$conf.int
 
 
-temp <- summ_cox_html(xcmrg)
+summ_cox_html(xcmrg)
