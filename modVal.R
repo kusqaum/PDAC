@@ -12,6 +12,7 @@ source("Code/summ_cox_html.R")
 load("Output/Models/flsm.R")
 # espac3 <- readRDS("Data/espac3clean.rds")
 load("Data/espac4gem.R") # for external validation
+load("Data/e4_cov.R")
 
 
 
@@ -57,11 +58,13 @@ c_slope <- coxph(flsm$data$m[,1] ~ lp)
 
 
 ####  external validation... ####
+# using espac 4
+# xpred <- predict(flsm, newdata = espac4_gem, type = 'lp')
+# xlp <- xpred$.pred_link
 
-xpred <- predict(flsm, newdata = espac4_gem, type = 'lp')
-xlp <- xpred$.pred_link
-
-xsobj <- Surv(time = espac4_gem$time, event = espac4_gem$cen)
+e4 <- e4_cov[,1:5]
+xlp <- t(coef %*% t(e4))
+xsobj <- e4_cov[,6]
 
 
 xrg <- cut(xlp, breaks = c(-Inf, lp_q, Inf),
