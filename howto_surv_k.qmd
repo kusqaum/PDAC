@@ -1,10 +1,9 @@
 ---
 title: "Model Estimated Controls for Survival Outcomes"
-author: "K"
 format: 
   html:
-    self-contained: true
-editor: visual
+    self-contained: false
+    code-tools: false
 ---
 
 ## Introduction
@@ -19,7 +18,7 @@ We will implement MECs using the 'psc' package which specifically allows for the
 
 Let's first install and load the 'psc' and other necessary packages:
 
-```{r}
+```{r,warning=FALSE,results='hide'}
 # install.package("psc")
 library(psc)
 library(survival)
@@ -34,8 +33,8 @@ We are going to load the model that is going to act as the control treatment (th
 
 We can look at the model in more detail
 
-```{r}
-load("Output/Models/flsm.R")
+```{r,warning=FALSE,results='hide'}
+load("M:/Documents/Projects/Fellowship/modelDevelop/PDAC/Output/Models/flsm.R")
 
 flsm$call
 class(flsm)
@@ -49,7 +48,7 @@ It is important that the variables present in the model are also present in the 
 
 ```{r}
 
-load("Data/espac4gemcap.R")
+load("M:/Documents/Projects/Fellowship/modelDevelop/PDAC/Data/espac4gemcap.R")
 head(espac4_gemcap[1:3,])
 head(flsm$data$m[1:3,])
 names(flsm$data$m[,2:5])%in%names(espac4_gemcap)
@@ -76,6 +75,7 @@ cfm <- pscCFM(flsm)
 It is possible to visualise and summarise the data that was used to fit this model with the built in functions within pscCFM():
 
 ```{r}
+#| label: fig_dataSumm_gem
 cfm$datasumm$summ_Table
 
 ggarrange(plotlist = cfm$datavis, ncol = 2)
@@ -95,6 +95,7 @@ psc <- pscfit(cfm, espac4_gemcap)
 The output of the comparison can be visualised. The plot below visualises the effect of each treatment on ESPAC-4 patients. The pink line represents the model's predicted survival estimates (if the ESPAC-4 patients had been treated with GEM) and the orange line represents the data cohort's observed survival estimates.
 
 ```{r}
+#| label: plot_psc_surv_espac
 plot(psc)
 ```
 
@@ -110,6 +111,7 @@ summary(psc)
 We can extract the posterior distribution of the 'psc' and can view its autocorrelation and trace
 
 ```{r}
+#| label: posterior_psc_gem
 posterior <- psc$posterior
 head(posterior[1:3,])
 
