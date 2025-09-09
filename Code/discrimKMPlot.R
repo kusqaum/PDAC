@@ -14,26 +14,34 @@ discrimKMPlot <- function(fit, data, time, pal="none", leg.x="none",leg.y="none"
              legend.title = leg.title,
              xlim = xlim,
              legend.labs = leg.labs,
-             xlab="Time(months)"
+             xlab="Time (months)"
              )$plot+
     geom_hline(yintercept = seq(0,hl, by = 0.1), lty = 2, colour="grey") +
     geom_vline(xintercept = seq(0,vl, by = 10), lty = 2, colour="grey") +
-    theme(panel.background = element_rect(fill='transparent'), 
-          plot.background = element_rect(fill='transparent', colour=NA),
-          legend.background = element_rect(fill='transparent'), 
-          legend.box.background = element_rect(fill='transparent'),
-          axis.title.x = element_text(face="italic", colour="white"),
-          axis.title.y = element_text(face = "italic", colour="white"),
-          legend.text = element_text(colour="white"),
-          axis.line.x = element_line(colour = "white"),
-          axis.line.y = element_line(colour = "white"),
-          axis.ticks.x = element_line(colour = "white"),
-          axis.ticks.y = element_line(colour = "white"),
-          axis.text.x = element_text(colour = "white"),
-          axis.text.y = element_text(colour = "white"))
+    theme_mecPortal()
+    
     
 }
 
-# discrimPlot(sfRG, data = espac3_c, espac3$stime, pal=c("2","5","1","4"),
-#             xlim = c(0,50), leg.labs = c("2","f","$","3"), leg.x = 0.1,leg.y = 0.1)
-
+theme_mecPortal <- function(){
+    theme(panel.background = element_rect(fill='transparent'), 
+        plot.background = element_rect(fill='transparent', colour=NA),
+        legend.background = element_rect(fill='transparent', colour = NA),
+        #legend.key = element_rect(fill = "transparent",colour = NA),
+        legend.box.background = element_rect(fill='transparent'),
+        axis.title.x = element_text(face="italic", colour="white"),
+        axis.title.y = element_text(face = "italic", colour="white"),
+        legend.text = element_text(colour="white"),
+        axis.line.x = element_line(colour = "white"),
+        axis.line.y = element_line(colour = "white"),
+        axis.ticks.x = element_line(colour = "white"),
+        axis.ticks.y = element_line(colour = "white"),
+        axis.text.x = element_text(colour = "white"),
+        axis.text.y = element_text(colour = "white"))
+}
+"#EF9A9A"
+greens <-c("#E0F2F1","#80CBC4","#00BFA5","#00796b")
+pinks<- c("#FCE4EC","#F8BBD0","#FF80AB","#C51162")
+pinks<- c("#FCE4EC","#F8BBD0","#F06292","#C51162")
+c("#FCE4EC","#F8BBD0","#E57373","#FF80AB", "#F06292","#AD1457")
+pinksCb<- c("#feebe2","#fbb4b9","#f768a1","#ae017e")
