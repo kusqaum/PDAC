@@ -1,6 +1,7 @@
 library(psc)
 library(survival)
 library(ggpubr)
+library(ragg)
 load("Output/Models/flsm.R")
 
 
@@ -10,13 +11,14 @@ cfm <- pscCFM(flsm, dataSumm = T, dataVis = T)
 # get plots ready
 plots <- list()
 for(p in 1:length(cfm$datavis)){
-  plots[[p]] <- plot(cfm$datavis[[p]])
+  plots[[p]] <- plot(cfm$datavis[[p]])+
+    theme_mecData()
 }
 
 dev.off()
 
-CairoPNG("Output/Images/e3_gem_ka.png", width = 400, height = 700,
-         bg = "transparent")
+agg_png("Output/Images/e3_gem_ka.png", width = 400, height = 700,
+         bg = "transparent",res = 100)
 
 ggarrange(plotlist = plots, ncol = 1)
 dev.off()

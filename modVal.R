@@ -5,12 +5,12 @@ library(survival)
 library(survminer)
 library(cowplot)
 library(psc)
-library(Cairo)
+library(ragg)
 source("Code/discrimKMPlot.R")
 source("Code/summ_cox_html.R")
 
 load("Output/Models/flsm.R")
-# espac3 <- readRDS("Data/espac3clean.rds")
+espac3 <- readRDS("Data/espac3clean.rds")
 load("Data/espac4gem.R") # for external validation
 load("Data/e4_cov.R")
 
@@ -36,10 +36,10 @@ rg <- cut(lp, breaks = c(-Inf, lp_q, Inf),
 
 sfRG <- survfit(sobj~rg)
 
-CairoPNG("Output/Images/e3_gem_discrim_ka.png", 
-    width = 600, height = 600, bg = "transparent")
-discrimKMPlot(sfRG, data = as.data.frame(cov), time = espac3$stime,
-              pal = c("pink2","purple","cyan3", "dodgerblue3"),
+agg_png("Output/Images/e3_gem_discrim_ka.png", 
+    width = 600, height = 600, bg = "transparent",res=110)
+discrimKMPlot(sfRG, data = as.data.frame(cov),lw = 1.5, time = espac3$stime,
+              pal = c("#feebe2","#fbb4b9","#f768a1","#ae017e"),
               xlim = c(0,70), leg.x = 0.65, leg.y = 0.85, 
               leg.labs = c("Risk Group 1", "Risk Group 2", "Risk Group 3", "Risk Group 4"), 
               vl = 70)
@@ -64,7 +64,7 @@ c_slope <- coxph(flsm$data$m[,1] ~ lp)
 
 e4 <- e4_cov[,1:5]
 xlp <- t(coef %*% t(e4))
-xsobj <- e4_cov[,6]
+xsobj <- e4_cov$s.obj
 
 
 xrg <- cut(xlp, breaks = c(-Inf, lp_q, Inf),
@@ -72,7 +72,7 @@ xrg <- cut(xlp, breaks = c(-Inf, lp_q, Inf),
 
 xfit <- survfit(xsobj~xrg)
 #discrim
-CairoPNG("Output/Images/e4_gem_discrim_ka.png", 
+agg_png("Output/Images/e4_gem_discrim_ka.png", 
          width = 600, height = 600, bg = "transparent")
 ggsurvplot(xfit, data=espac4_gem,
            palette = c("pink2","purple","cyan3", "dodgerblue3"),
@@ -100,7 +100,7 @@ dev.off()
 
 
 #calib
-xcm <- coxph(xsobj~xlp)
+xcm <- coxph(xsobj~xlp) # slope
 summary(xcm) # slope 0.544
 xcm$concordance # 0.59
 2*(xcm$concordance[6]-0.5)
