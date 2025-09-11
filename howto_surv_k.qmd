@@ -2,24 +2,18 @@
 title: "Model Estimated Controls for Survival Outcomes"
 format: 
   html:
-    self-contained: false
-    code-tools: false
+    self-contained: true
 ---
 
 ## Introduction
 
-Model estimated controls (MECs) are statistical models that can be used to assess the efficacy of new therapies without needing to use clinical trials.
-
-MECs can act as counterfactual evidence (a way to predict 'what if?'- i.e., how would patients respond if they had received a different treatment?)
-
 For survival outcomes, MECs can be used as a control to compare the effect of a control treatment against the effect of an observed experimental treatment on overall survival in patients.
 
-We will implement MECs using the 'psc' package which specifically allows for the comparison of patient groups treated with an experimental treatment against a counterfactual model.
+We will implement MECs using the 'psc' package which specifically allows for the comparison of patient groups treated with an experimental treatment against a counterfactual model (CFM).
 
-Let's first install and load the 'psc' and other necessary packages:
+Load necessary packages:
 
-```{r,warning=FALSE,results='hide'}
-# install.package("psc")
+```{r,warning=FALSE,results='hide',message=FALSE}
 library(psc)
 library(survival)
 library(ggpubr)
@@ -27,45 +21,28 @@ library(ggpubr)
 
 ## An example
 
-In this example, we will look at survival outcomes in patients with pancreatic cancer from the ESPAC (European Study for Pancreatic Cancer)-4 trial and compare how the survival of patients differs with two different treatments...
+In this example, we will look at survival outcomes in patients with pancreatic cancer from the ESPAC (European Study for Pancreatic Cancer)-4 trial and compare how the survival of patients differs with two different treatments: GEM Vs. GEMCAP...
 
-We are going to load the model that is going to act as the control treatment (the counterfactual evidence discussed above). This model is a flexible parametric model that was created using the 'flexsurv' package.
-
-We can look at the model in more detail
+Load the model that will act as the control treatment (CFM). This model is a flexible parametric model.
 
 ```{r,warning=FALSE,results='hide'}
-load("M:/Documents/Projects/Fellowship/modelDevelop/PDAC/Output/Models/flsm.R")
+load("Output/Models/flsm.R")
 
-flsm$call
-class(flsm)
 ```
 
-So now that we have our control treatment, monotherapy gemcitabine (GEM), we will load the ESPAC-4 dataset. ESPAC-4 consists of patients that have been treated with the experimental treatment, adjuvant gemcitabine and capecitabine, GEMCAP.
+Now that we have our control treatment, monotherapy gemcitabine (GEM), we will load the ESPAC-4 dataset. ESPAC-4 consists of patients that have been treated with the experimental treatment, adjuvant gemcitabine and capecitabine, GEMCAP.
 
 Our aim is to compare the ESPAC-4 dataset against the GEM model to determine which of the treatments is more effective.
 
-It is important that the variables present in the model are also present in the comparison dataset. It is also important that the time variable in the model's survival object and in the comparison dataset are encoded as 'time'.
-
 ```{r}
 
-load("M:/Documents/Projects/Fellowship/modelDevelop/PDAC/Data/espac4gemcap.R")
-head(espac4_gemcap[1:3,])
-head(flsm$data$m[1:3,])
-names(flsm$data$m[,2:5])%in%names(espac4_gemcap)
+load("Data/espac4gemcap.R")
 
-```
-
-We should also check the the variables are the correct class...
-
-Categorical variables should be class factor and continuous variables should be numeric.
-
-```{r}
-str(espac4_gemcap)
 ```
 
 ## Fit counterfactual model :)
 
-Now that we have checked the correct variables are in our dataset and that they are encoded correctly, we can turn the flexible parametric model into a counterfactual model. We will use the pscfit() function:
+We can turn the flexible parametric model into a CFM using the pscCFM() function:
 
 ```{r results='hide',warning=FALSE}
 cfm <- pscCFM(flsm)
@@ -84,15 +61,13 @@ ggarrange(plotlist = cfm$datavis, ncol = 2)
 
 ## Make comparison!
 
-We have now created a counterfactual model which can be compared against the ESPAC-4 data cohort. The comparison can be carried out using the pscfcit() function.
-
-Don't forget that the pscfit() function requires the 'time' variables in the data cohort and in the counterfactual model to be encoded as 'time' and the event variable to be encoded as 'cen'. The variable names need to be the exact same.
+The CFM can be compared against the ESPAC-4 data cohort. The comparison will be carried out using the pscfcit() function.
 
 ```{r results='hide',warning=FALSE}
 psc <- pscfit(cfm, espac4_gemcap)
 ```
 
-The output of the comparison can be visualised. The plot below visualises the effect of each treatment on ESPAC-4 patients. The pink line represents the model's predicted survival estimates (if the ESPAC-4 patients had been treated with GEM) and the orange line represents the data cohort's observed survival estimates.
+The plot below visualises the effect of each treatment on ESPAC-4 patients. The pink line represents the model's predicted survival estimates (if the ESPAC-4 patients had been treated with GEM) and the orange line represents the data cohort's observed survival estimates.
 
 ```{r}
 #| label: plot_psc_surv_espac
@@ -123,8 +98,8 @@ plot(posterior$beta, type = 's')
 
 ```
 
-## Take homes
+## More details!
 
--   Check your data is formatted correctly (variable names should exactly match that of the model's)
+-   More details on GEM model vs GEMCAP patients can be found at: https://richjjackson.github.io/mecPortal//applications/gem_gemcap_pdac.html
 
--   
+-   Code for tutorial is available: https://github.com/kusqaum/PDAC
