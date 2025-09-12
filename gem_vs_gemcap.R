@@ -21,6 +21,7 @@ post <- pscfit$posterior
 
 
 #### sub-group analysis ####
+
 espac4_R1 <- espac4_gemcap[which(espac4_gemcap$ResecM==1),]
 espac4_R0 <- espac4_gemcap[which(espac4_gemcap$ResecM==0),]
 espac4_L1 <- espac4_gemcap[which(espac4_gemcap$LymphN==1),]
@@ -49,3 +50,5 @@ pscDiff2 <- pscfit(cfm, espac4_Diff2)
 # summPSCfit(pscR1)
 # coef(pscR1
 #      )
+#sub-group anal can be also done like:
+# idRM1 <- which(espac4_gemcap$ResecM==1)  then specify the id in the pscfit: psc <- pscfit(cfm,espac4_gemcap, id=idRM1) etc etc

@@ -58,13 +58,13 @@ c_slope <- coxph(flsm$data$m[,1] ~ lp)
 
 
 ####  external validation... ####
-# using espac 4
+# using espac 4 gem treated patients
 # xpred <- predict(flsm, newdata = espac4_gem, type = 'lp')
 # xlp <- xpred$.pred_link
 
-e4 <- e4_cov[,1:5]
+e4 <- e4_cov[,1:ncol(e4_cov)-1]
 xlp <- t(coef %*% t(e4))
-xsobj <- e4_cov$s.obj
+xsobj <- e4_cov[,ncol(e4_cov)]
 
 
 xrg <- cut(xlp, breaks = c(-Inf, lp_q, Inf),
@@ -75,7 +75,7 @@ xfit <- survfit(xsobj~xrg)
 agg_png("Output/Images/e4_gem_discrim_ka.png", 
          width = 600, height = 600, bg = "transparent")
 ggsurvplot(xfit, data=espac4_gem,
-           palette = c("pink2","purple","cyan3", "dodgerblue3"),
+           palette = ("#feebe2","#fbb4b9","#f768a1","#ae017e"),
            xlim = c(0,70),
            legend = c(0.65,0.85),
            legend.title = element_blank(), 
@@ -83,19 +83,7 @@ ggsurvplot(xfit, data=espac4_gem,
            xlab= "Time (months)")$plot+
   geom_hline(yintercept = seq(0,1, by = 0.1), lty = 2, colour="grey") +
   geom_vline(xintercept = seq(0,70, by = 10), lty = 2, colour="grey") + 
-  theme(panel.background = element_rect(fill='transparent'), 
-        plot.background = element_rect(fill='transparent', colour=NA),
-        legend.background = element_rect(fill='transparent'), 
-        legend.box.background = element_rect(fill='transparent'),
-        axis.title.x = element_text(face="italic", colour="white"),
-        axis.title.y = element_text(face = "italic", colour="white"),
-        legend.text = element_text(colour="white"),
-        axis.line.x = element_line(colour = "white"),
-        axis.line.y = element_line(colour = "white"),
-        axis.ticks.x = element_line(colour = "white"),
-        axis.ticks.y = element_line(colour = "white"),
-        axis.text.x = element_text(colour = "white"),
-        axis.text.y = element_text(colour = "white"))
+  theme_mecPortal()
 dev.off()
 
 
