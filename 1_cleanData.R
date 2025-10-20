@@ -3,7 +3,7 @@ setwd("~/Documents/GitHub/PDAC")
 
 espac3_L <- read.csv("Data/espac3.csv", row.names = 1)
 # dat <- read.csv("Data/espac3_clean.csv")
-
+colnames(espac3_L)[which(colnames(espac3_L)=="OS_cem")]<-"cen"
 espac3 <- espac3_L[espac3_L$Arm == "GEM" &espac3_L$TumourType=="Ductal",]
 
 
